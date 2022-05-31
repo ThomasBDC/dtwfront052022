@@ -27,26 +27,7 @@ function getLinks(perPage = 10, page =1){
                 /*Je crée un élément en html, qui corresponds 
                 à l'affichage de mon lien*/
 
-            myHtml +=
-                `
-                <div class="cardLinks">
-                    <div class="card h-100">
-                        <img src="https://picsum.photos/200/100" class="card-img-top" alt="image">
-                        <div class="card-body">
-                            <h5 class="card-title">${element.title}</h5>
-                            <p class="card-text">
-                            ${element.description}
-                            </p>
-                            <a href="${element.link}" class="btn btn-primary">
-                                Go !   
-                            </a>
-                        </div>
-                        <div class="card-footer">
-                            <small class="text-muted">By ${element.author.surName} ${element.author.foreName}</small>
-                        </div>
-                    </div>
-                </div>
-                `;
+            myHtml +=getCard(element.idLink, element.title, element.description, element.link, element.author.surName, element.author.foreName);
 
             });
             if(page == 1){
@@ -102,26 +83,7 @@ function searchLinks(){
                     /*Je crée un élément en html, qui corresponds 
                     à l'affichage de mon lien*/
     
-                myHtml +=
-                    `
-                    <div class="cardLinks">
-                        <div class="card h-100">
-                            <img src="https://picsum.photos/200/100" class="card-img-top" alt="image">
-                            <div class="card-body">
-                                <h5 class="card-title">${element.title}</h5>
-                                <p class="card-text">
-                                ${element.description}
-                                </p>
-                                <a href="${element.link}" class="btn btn-primary">
-                                    Go !   
-                                </a>
-                            </div>
-                            <div class="card-footer">
-                                <small class="text-muted">By ${element.author.surName} ${element.author.foreName}</small>
-                            </div>
-                        </div>
-                    </div>
-                    `;
+                    myHtml += getCard(element.idLink, element.title, element.description, element.link, element.author.surName, element.author.foreName);
     
                 });
                 if(myHtml != ''){
@@ -139,10 +101,110 @@ function searchLinks(){
     
 }
 
-
 function addLink(){
-    alert("ajouter le lien");
+    let myForm = document.getElementById("addLinkForm");
+    let formObj = new FormData(myForm);
+    const headers = new Headers();
+        headers.append("Content-Type", "application/json;charset=UTF-8")
+    
+        const body = JSON.stringify({
+            title: formObj.get('title'),
+            description: formObj.get('description'),
+            link: formObj.get('link'),
+            idAuthor: +(formObj.get('idAuthor'))
+        }); 
+
+        const init = {
+            method: 'POST', 
+            headers: headers,
+            body: body
+        };
+    
+        //https://dtw.azurewebsites.net/api/links
+        const urlRequete = urlApiLinks;
+    
+        fetch(urlRequete, init)
+            .then(response => {
+                if(response.status == 201){
+                    return response.json();
+                }
+                else{
+                    alert("Une erreur est survenue");
+                    return response;
+                }
+            })
+            .then(element => {
+                alert("Le lien a bien été créé");
+
+                var myCard = getCard(element.idLink, element.title, element.description, element.link, 'Vous même', ' à l instant');
+
+                var html = myCard + document.getElementById("linksContainer").innerHTML;
+                document.getElementById("linksContainer").innerHTML = html;
+                myForm.reset();
+                var myModal = new bootstrap.Modal(document.getElementById("addLinkModal"), {
+                    keyboard: false
+                  })
+                myModal.hide();
+            })
+            .catch(error =>{
+                alert(error);
+            });
 }
+
+function deleteLink(idlink){
+    if(confirm("Êtes-vous sûr.e de vouloir supprimer ce lien ? ")){
+        //Si il est ok, on fait l'appel AJAX
+        const headers = new Headers();
+        const init = {
+            method: 'DELETE', 
+            headers: headers
+        };
+        //https://dtw.azurewebsites.net/api/{idLinks}
+        const urlRequete = urlApiLinks +"/"+idlink;
+        fetch(urlRequete, init)
+            .then(response => {
+                if(response.status == 200){
+                    //Si supprimé en BDD, alors on le supprime dans le DOM
+                    document.getElementById("cardLink"+idlink).remove();
+                    alert('Votre lien a bien été supprimé');
+                }
+                else{
+                    alert('Une erreur est survenue');
+                }
+            })
+            .catch(error =>{
+                alert(error);
+            });
+    }
+}
+
+function getCard(idLink, title, description, link, surName, foreName){
+    let myHtml =
+        `
+        <div class="cardLinks" id="cardLink${idLink}">
+            <div class="card h-100">
+                <img src="https://picsum.photos/200/100" class="card-img-top" alt="image">
+                <div class="card-body">
+                    <h5 class="card-title">${title}</h5>
+                    <p class="card-text">
+                    ${description}
+                    </p>
+                    <a href="${link}" class="btn btn-primary">
+                        Go !   
+                    </a>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">By ${surName} ${foreName}</small>
+                    <button onclick="deleteLink(${idLink})" class="btn btn-danger btn-delete-link">X</button>
+                </div>
+            </div>
+        </div>
+        `;
+
+        return myHtml;
+        
+}
+
 
 document.addEventListener('DOMContentLoaded', function () {
     getLinks(15,1);
