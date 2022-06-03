@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="links.css"/>
     <title>Les liens - DevtechWatch</title>
 </head>
@@ -21,7 +22,7 @@
                     <input id="searchBarInput" onchange="searchLinks()" class="form-control" type="text" placeholder="Recherchez votre lien..."/>
                 </div>
                 <div class="col-2">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLinkModal">Add</button>
+                    <button class="btn btn-primary" onclick="showAddLinkModal()"><i class="bi bi-plus-square"></i></button>
                 </div>
             </div>
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 p-3" id="linksContainer">
@@ -58,11 +59,13 @@
                     <input name="idAuthor" type="number" class="form-control" id="idAuthorInput">
                     <div id="" class="form-text">Pour des raisons techniques, merci de passer directement l'identifiant de l'auteur</div>
                 </div>
+                <input name="idLink" type="hidden" id="idLinkInput">
               </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-          <button type="button" class="btn btn-primary" onclick="addLink()">Ajouter</button>
+          <button type="button" class="btn btn-primary" id="btnValidationAddModal" onclick="addLink()">Ajouter</button>
+          <button type="button" class="btn btn-primary" id="btnValidationEditModal" onclick="editLinkAction()">Modifier</button>
         </div>
       </div>
     </div>

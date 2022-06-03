@@ -2,6 +2,7 @@ const urlApi = 'https://dtw.azurewebsites.net/api'
 const urlApiLinks = urlApi + '/links';
 let currentPage = 1;
 let isSearchMode = false;
+let addEditModal = new bootstrap.Modal(document.getElementById("addLinkModal"), {});
 
 function getLinks(perPage = 10, page =1){
     isSearchMode = false;
@@ -101,6 +102,102 @@ function searchLinks(){
     
 }
 
+function editLinkModal(idlink){
+    //Modification des éléments benins
+    document.getElementById("addLinkModalLabel").innerText = "Modifier un lien";
+    document.getElementById("btnValidationAddModal").hidden = true;
+    document.getElementById("btnValidationEditModal").hidden = false;
+
+    //Mettre les éléments de mon lien dans la modale, et l'afficher
+    //Récupérer les valeurs de mon utilisateur, et les passer dans la modal
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json")
+
+    const init = {
+        method: 'GET', 
+        headers: headers
+    };
+
+    const urlRequete = urlApiLinks + '/' + idlink;
+    fetch(urlRequete, init)
+        .then(response => {
+            return response.json();
+        })
+        .then(monLien => {
+            document.getElementById("idLinkInput").value = monLien.idLink;
+            document.getElementById("titreInput").value = monLien.title;
+            document.getElementById("descriptionInput").value = monLien.description;
+            document.getElementById("linksInput").value = monLien.link;
+            document.getElementById("idAuthorInput").value = monLien.author.idUser;
+        })
+        .catch(error =>{
+            alert(error);
+        });
+    addEditModal.show();
+}
+
+function editLinkAction(){
+    let myForm = document.getElementById("addLinkForm");
+    let formObj = new FormData(myForm);
+    const headers = new Headers();
+        headers.append("Content-Type", "application/json;charset=UTF-8")
+    
+        const body = JSON.stringify({
+            idLink: +(formObj.get('idLink')),
+            title: formObj.get('title'),
+            description: formObj.get('description'),
+            link: formObj.get('link'),
+            idAuthor: +(formObj.get('idAuthor'))
+        }); 
+
+        const init = {
+            method: 'PUT', 
+            headers: headers,
+            body: body
+        };
+    
+        //https://dtw.azurewebsites.net/api/links
+        const urlRequete = urlApiLinks + '/' + formObj.get('idLink');
+    
+        fetch(urlRequete, init)
+            .then(response => {
+                if(response.status == 200){
+                    return response.json();
+                }
+                else{
+                    alert("Une erreur est survenue");
+                    return response;
+                }
+            })
+            .then(element => {
+                //Supprime dans la page la card du lien avant d'être modifié
+                document.getElementById("cardLink"+element.idLink).remove();
+                //Je génère la nouvelle card, et l'ajoute dans le html
+                var myCard = getCard(element.idLink, element.title, element.description, element.link, 'Vous même', ' à l instant');
+                var html = myCard + document.getElementById("linksContainer").innerHTML;
+                document.getElementById("linksContainer").innerHTML = html;
+                //je reset mon formulaire
+                myForm.reset();
+                //Je ferme la modale
+                addEditModal.hide();
+            })
+            .catch(error =>{
+                alert(error);
+            });
+}
+
+function showAddLinkModal(){
+    document.getElementById("addLinkModalLabel").innerText = "Ajouter un lien";
+    document.getElementById("btnValidationAddModal").hidden = false;
+    document.getElementById("btnValidationEditModal").hidden = true;
+    document.getElementById("idLinkInput").value = '';
+    document.getElementById("titreInput").value = '';
+    document.getElementById("descriptionInput").value = '';
+    document.getElementById("linksInput").value = '';
+    document.getElementById("idAuthorInput").value = undefined;
+    addEditModal.show();
+}
+
 function addLink(){
     let myForm = document.getElementById("addLinkForm");
     let formObj = new FormData(myForm);
@@ -134,17 +231,13 @@ function addLink(){
                 }
             })
             .then(element => {
-                alert("Le lien a bien été créé");
 
                 var myCard = getCard(element.idLink, element.title, element.description, element.link, 'Vous même', ' à l instant');
 
                 var html = myCard + document.getElementById("linksContainer").innerHTML;
                 document.getElementById("linksContainer").innerHTML = html;
                 myForm.reset();
-                var myModal = new bootstrap.Modal(document.getElementById("addLinkModal"), {
-                    keyboard: false
-                  })
-                myModal.hide();
+                addEditModal.hide();
             })
             .catch(error =>{
                 alert(error);
@@ -183,7 +276,6 @@ function getCard(idLink, title, description, link, surName, foreName){
         `
         <div class="cardLinks" id="cardLink${idLink}">
             <div class="card h-100">
-                <img src="https://picsum.photos/200/100" class="card-img-top" alt="image">
                 <div class="card-body">
                     <h5 class="card-title">${title}</h5>
                     <p class="card-text">
@@ -195,7 +287,8 @@ function getCard(idLink, title, description, link, surName, foreName){
                 </div>
                 <div class="card-footer">
                     <small class="text-muted">By ${surName} ${foreName}</small>
-                    <button onclick="deleteLink(${idLink})" class="btn btn-danger btn-delete-link">X</button>
+                    <button onclick="deleteLink(${idLink})" class="btn btn-danger btn-delete-link"><i class="bi bi-trash3"></i></button>
+                    <button onclick="editLinkModal(${idLink})" class="btn btn-info btn-delete-link"><i class="bi bi-pen"></i></button>
                 </div>
             </div>
         </div>
