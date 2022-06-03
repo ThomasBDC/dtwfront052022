@@ -1,10 +1,12 @@
 const urlApi = 'https://dtw.azurewebsites.net/api'
-const urlApiLinks = urlApi + '/links';
+const urlApiUsers = urlApi + '/users';
 let currentPage = 1;
 let isSearchMode = false;
 let addEditModal = new bootstrap.Modal(document.getElementById("addLinkModal"), {});
+const perPageConst = 30;
 
-function getLinks(perPage = 10, page =1){
+//OK
+function getUsers(perPage = perPageConst, page =1){
     isSearchMode = false;
     const headers = new Headers();
     headers.append("Content-Type", "application/json")
@@ -14,7 +16,7 @@ function getLinks(perPage = 10, page =1){
         headers: headers
     };
 
-    const urlRequete = urlApiLinks + '?perPage='+perPage+'&page='+page;
+    const urlRequete = urlApiUsers + '?perPage='+perPage+'&page='+page;
     fetch(urlRequete, init)
         .then(response => {
             return response.json();
@@ -28,16 +30,16 @@ function getLinks(perPage = 10, page =1){
                 /*Je crée un élément en html, qui corresponds 
                 à l'affichage de mon lien*/
 
-            myHtml +=getCard(element.idLink, element.title, element.description, element.link, element.author.surName, element.author.foreName);
+            myHtml +=getCard(element.idUser, element.surName, element.foreName, element.mail);
 
             });
             if(page == 1){
                 //Premier affichage, on vide le contenu de la div
-                document.getElementById("linksContainer").innerHTML = myHtml;
+                document.getElementById("usersContainer").innerHTML = myHtml;
             }
             else{
                 //étapes de pagination, on ajoute le contenu en s
-                document.getElementById("linksContainer").innerHTML += myHtml;
+                document.getElementById("usersContainer").innerHTML += myHtml;
             }
         })
         .catch(error =>{
@@ -45,19 +47,21 @@ function getLinks(perPage = 10, page =1){
         });
 }
 
+//OK
 function paginate(){
     currentPage ++;
-    getLinks(15,currentPage)
+    getUsers(perPageConst,currentPage)
 }
 
-function searchLinks(){
+//OK
+function searchUsers(){
     isSearchMode = true;
     currentPage = 1;
 
     const search = document.getElementById("searchBarInput").value;
     
     if(search == '' || search == undefined){
-        getLinks(15, currentPage);
+        getUsers(perPageConst, currentPage);
     }
     else{
         const headers = new Headers();
@@ -69,7 +73,7 @@ function searchLinks(){
         };
     
         //https://dtw.azurewebsites.net/api/links/search?search=laur
-        const urlRequete = urlApiLinks + '/search?search='+search;
+        const urlRequete = urlApiUsers + '/search?search='+search;
     
         fetch(urlRequete, init)
             .then(response => {
@@ -84,14 +88,14 @@ function searchLinks(){
                     /*Je crée un élément en html, qui corresponds 
                     à l'affichage de mon lien*/
     
-                    myHtml += getCard(element.idLink, element.title, element.description, element.link, element.author.surName, element.author.foreName);
+                    myHtml +=getCard(element.idUser, element.surName, element.foreName, element.mail);
     
                 });
                 if(myHtml != ''){
-                    document.getElementById("linksContainer").innerHTML = myHtml;
+                    document.getElementById("usersContainer").innerHTML = myHtml;
                 }
                 else{
-                    document.getElementById("linksContainer").innerHTML = `<span class="text-danger">Fin de l'affichage des résultats`;
+                    document.getElementById("usersContainer").innerHTML = `<span class="text-danger">Fin de l'affichage des résultats`;
                 }
             })
             .catch(error =>{
@@ -102,6 +106,7 @@ function searchLinks(){
     
 }
 
+//TODO
 function editLinkModal(idlink){
     //Modification des éléments benins
     document.getElementById("addLinkModalLabel").innerText = "Modifier un lien";
@@ -118,7 +123,7 @@ function editLinkModal(idlink){
         headers: headers
     };
 
-    const urlRequete = urlApiLinks + '/' + idlink;
+    const urlRequete = urlApiUsers + '/' + idlink;
     fetch(urlRequete, init)
         .then(response => {
             return response.json();
@@ -136,6 +141,7 @@ function editLinkModal(idlink){
     addEditModal.show();
 }
 
+//TODO
 function editLinkAction(){
     let myForm = document.getElementById("addLinkForm");
     let formObj = new FormData(myForm);
@@ -157,7 +163,7 @@ function editLinkAction(){
         };
     
         //https://dtw.azurewebsites.net/api/links
-        const urlRequete = urlApiLinks + '/' + formObj.get('idLink');
+        const urlRequete = urlApiUsers + '/' + formObj.get('idLink');
     
         fetch(urlRequete, init)
             .then(response => {
@@ -174,8 +180,8 @@ function editLinkAction(){
                 document.getElementById("cardLink"+element.idLink).remove();
                 //Je génère la nouvelle card, et l'ajoute dans le html
                 var myCard = getCard(element.idLink, element.title, element.description, element.link, 'Vous même', ' à l instant');
-                var html = myCard + document.getElementById("linksContainer").innerHTML;
-                document.getElementById("linksContainer").innerHTML = html;
+                var html = myCard + document.getElementById("usersContainer").innerHTML;
+                document.getElementById("usersContainer").innerHTML = html;
                 //je reset mon formulaire
                 myForm.reset();
                 //Je ferme la modale
@@ -186,6 +192,7 @@ function editLinkAction(){
             });
 }
 
+//TODO
 function showAddLinkModal(){
     document.getElementById("addLinkModalLabel").innerText = "Ajouter un lien";
     document.getElementById("btnValidationAddModal").hidden = false;
@@ -198,6 +205,7 @@ function showAddLinkModal(){
     addEditModal.show();
 }
 
+//TODO
 function addLink(){
     let myForm = document.getElementById("addLinkForm");
     let formObj = new FormData(myForm);
@@ -218,7 +226,7 @@ function addLink(){
         };
     
         //https://dtw.azurewebsites.net/api/links
-        const urlRequete = urlApiLinks;
+        const urlRequete = urlApiUsers;
     
         fetch(urlRequete, init)
             .then(response => {
@@ -234,8 +242,8 @@ function addLink(){
 
                 var myCard = getCard(element.idLink, element.title, element.description, element.link, 'Vous même', ' à l instant');
 
-                var html = myCard + document.getElementById("linksContainer").innerHTML;
-                document.getElementById("linksContainer").innerHTML = html;
+                var html = myCard + document.getElementById("usersContainer").innerHTML;
+                document.getElementById("usersContainer").innerHTML = html;
                 myForm.reset();
                 addEditModal.hide();
             })
@@ -244,6 +252,7 @@ function addLink(){
             });
 }
 
+//TODO
 function deleteLink(idlink){
     if(confirm("Êtes-vous sûr.e de vouloir supprimer ce lien ? ")){
         //Si il est ok, on fait l'appel AJAX
@@ -253,7 +262,7 @@ function deleteLink(idlink){
             headers: headers
         };
         //https://dtw.azurewebsites.net/api/{idLinks}
-        const urlRequete = urlApiLinks +"/"+idlink;
+        const urlRequete = urlApiUsers +"/"+idlink;
         fetch(urlRequete, init)
             .then(response => {
                 if(response.status == 200){
@@ -271,24 +280,16 @@ function deleteLink(idlink){
     }
 }
 
-function getCard(idLink, title, description, link, surName, foreName){
+function getCard(iduser, forename, surname, mail){
     let myHtml =
         `
-        <div class="cardLinks" id="cardLink${idLink}">
+        <div class="cardLinks" id="cardLink${iduser}">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">${title}</h5>
+                    <h5 class="card-title">${forename} ${surname}</h5>
                     <p class="card-text">
-                    ${description}
+                    ${mail}
                     </p>
-                    <a href="${link}" class="btn btn-primary">
-                        Go !   
-                    </a>
-                </div>
-                <div class="card-footer">
-                    <small class="text-muted">By ${surName} ${foreName}</small>
-                    <button onclick="deleteLink(${idLink})" class="btn btn-danger btn-delete-link"><i class="bi bi-trash3"></i></button>
-                    <button onclick="editLinkModal(${idLink})" class="btn btn-info btn-delete-link"><i class="bi bi-pen"></i></button>
                 </div>
             </div>
         </div>
@@ -298,8 +299,9 @@ function getCard(idLink, title, description, link, surName, foreName){
         
 }
 
+//OK
 document.addEventListener('DOMContentLoaded', function () {
-    getLinks(15,1);
+    getUsers(perPageConst,1);
 
     //infite scroll
     window.addEventListener('scroll', () => {
